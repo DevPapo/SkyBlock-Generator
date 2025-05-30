@@ -9,8 +9,8 @@ generation_radius: 25
 
 # Blocks to generate (can be ores or any other blocks)
 generated_blocks:
-  - "iron_ore"
-  - "diamond_ore"
-  - "coal_ore"
-  - "emerald_ore"
-  - "gold_ore"
+  - "iron_ore" 
+  - "diamond_ore" 
+  - "coal_ore" 
+  - "emerald_ore" 
+  - "gold_ore" 
