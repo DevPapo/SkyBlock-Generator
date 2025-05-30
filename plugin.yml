@@ -1,0 +1,8 @@
+---
+name: SkyBlock-Generator
+version: 1.0.0
+main: devpapo\SkyBlockGenerator\Main
+api: 5.0.0
+author: devpapo
+description: Generates ores and blocks above specified base blocks.
+---
