@@ -13,7 +13,7 @@ Automated ore/block generator for SkyBlock mode in PocketMine-MP 5
 
 ## Installation
 
-1. Download the `.phar` file from [releases section](https://github.com/devpapo/SkyBlock-Generator/releases)
+1. Download the `.phar` file from [releases section](https://github.com/DevPapo/SkyBlock-Generator/releases/tag/pocketmine)
 2. Place it in your server's `plugins` folder
 3. Restart the server
 
