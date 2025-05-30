@@ -5,7 +5,7 @@ Automated ore/block generator for SkyBlock mode in PocketMine-MP 5
 ## Features
 
 - Automatic generation of ores/blocks above barriers (configurable)
-- Adjustable generation interval (down to 0.3 seconds)
+- Adjustable generation interval (down to 1.5 seconds)
 - Player-centric generation (configurable radius)
 - Block cooldown system
 - Duplicate generation prevention
@@ -54,7 +54,7 @@ composer install
 
 ## License
 
-GPL-3.0 License. See [LICENSE](LICENSE) for details.
+MIT License. See [LICENSE](https://github.com/DevPapo/SkyBlock-Generator/blob/main/LICENSE) for details.
 
 ---
 
