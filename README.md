@@ -24,10 +24,10 @@ Automated ore/block generator for SkyBlock mode in PocketMine-MP 5
 base_block: "barrier"
 
 # Generation interval in seconds (0.3 minimum recommended)
-generation_interval: 0.5
+generation_interval: 1.5
 
 # Radius around player (in blocks)
-generation_radius: 20
+generation_radius: 25
 
 # List of blocks to generate
 generated_blocks:
@@ -58,7 +58,7 @@ GPL-3.0 License. See [LICENSE](LICENSE) for details.
 
 ---
 
-> **Note**: For intervals below 0.5 seconds, reduce `generation_radius` for better performance.
+> **Note**: For intervals below 1.5 seconds, reduce `generation_radius` for better performance.
 ```
 
 Key features of this README:
