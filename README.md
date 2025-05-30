@@ -1,4 +1,3 @@
-```markdown
 # SkyBlock-Generator
 
 Automated ore/block generator for SkyBlock mode in PocketMine-MP 5
@@ -39,15 +38,10 @@ generated_blocks:
   - "coal_ore"
 ```
 
-## Commands
-
-- `/skygen reload` - Reload configuration
-- `/skygen stats` - Show generation statistics
-
 ## Development
 
 ```bash
-git clone https://github.com/devpapo/SkyBlock-Generator.git
+git clone https://github.com/DevPapo/SkyBlock-Generator.git
 cd SkyBlock-Generator
 composer install
 ```
