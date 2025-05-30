@@ -1,6 +1,6 @@
 <?php
 
-namespace DevPapo\SkyBlockGenerator;
+namespace devpapo\SkyBlockGenerator;
 
 use pocketmine\plugin\PluginBase;
 use pocketmine\utils\Config;
@@ -13,12 +13,14 @@ class Main extends PluginBase {
         $this->saveDefaultConfig();
         $this->generator = new BlockGenerator($this);
         
-        $interval = (float)$this->getConfig()->get("generation_interval", 1.5);
+        $interval = (float) $this->getConfig()->get("generation_interval", 1.5);
         $this->getScheduler()->scheduleRepeatingTask(
-            new \pocketmine\scheduler\ClosureTask(fn() => $this->generator->processGeneration()),
-            (int)($interval * 20)
+            new \pocketmine\scheduler\ClosureTask(function(): void {
+                $this->generator->processGeneration();
+            }),
+            (int) ($interval * 20)
         );
         
-        $this->getLogger()->info("§aSkyBlock-Generator activado correctamente");
+        $this->getLogger()->info("§aSkyBlock-Generator activado!");
     }
 }

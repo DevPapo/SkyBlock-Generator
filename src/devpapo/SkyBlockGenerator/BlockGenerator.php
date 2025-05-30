@@ -1,6 +1,6 @@
 <?php
 
-namespace DevPapo\SkyBlockGenerator;
+namespace devpapo\SkyBlockGenerator;
 
 use pocketmine\block\Block;
 use pocketmine\block\VanillaBlocks;
@@ -12,70 +12,49 @@ class BlockGenerator {
 
     private Main $plugin;
     private array $processedBlocks = [];
-    private int $cooldown = 3; // Segundos entre generaciones en la misma posición
+    private int $cooldown = 3;
 
     public function __construct(Main $plugin) {
         $this->plugin = $plugin;
     }
 
     public function processGeneration(): void {
-        $players = $this->plugin->getServer()->getOnlinePlayers();
-        $activeBlocks = [];
-
-        foreach($players as $player) {
-            $blocks = $this->findEligibleBlocks($player);
-            
-            foreach($blocks as $blockPos) {
-                $key = $this->positionToKey($blockPos);
-                
-                // Verificar cooldown y jugadores cercanos
-                if(!isset($this->processedBlocks[$key]) {
-                    $nearbyPlayers = $this->countNearbyPlayers($blockPos, $player->getWorld());
-                    
-                    if($nearbyPlayers >= 3) {
-                        $this->generateBlock($blockPos);
-                        $this->processedBlocks[$key] = time();
-                        $activeBlocks[$key] = true;
-                    }
-                }
+        try {
+            foreach ($this->plugin->getServer()->getOnlinePlayers() as $player) {
+                $this->checkNearbyBlocks($player);
             }
+            $this->cleanOldCooldowns();
+        } catch (\Throwable $e) {
+            $this->plugin->getLogger()->error("Error en generación: " . $e->getMessage());
         }
-
-        // Limpiar cooldowns antiguos
-        $this->cleanOldCooldowns($activeBlocks);
     }
 
-    private function findEligibleBlocks(Player $player): array {
-        $radius = (int)$this->plugin->getConfig()->get("generation_radius", 25);
-        $baseBlock = $this->getBaseBlock();
+    private function checkNearbyBlocks(Player $player): void {
         $world = $player->getWorld();
-        $blocks = [];
-
-        $pos = $player->getPosition();
-        $minX = $pos->getFloorX() - $radius;
-        $maxX = $pos->getFloorX() + $radius;
-        $minZ = $pos->getFloorZ() - $radius;
-        $maxZ = $pos->getFloorZ() + $radius;
-        $minY = max(0, $pos->getFloorY() - 10);
-        $maxY = min(World::Y_MAX, $pos->getFloorY() + 10);
-
-        for($x = $minX; $x <= $maxX; $x++) {
-            for($z = $minZ; $z <= $maxZ; $z++) {
-                for($y = $minY; $y <= $maxY; $y++) {
-                    $pos = new Position($x, $y, $z, $world);
-                    $block = $world->getBlock($pos);
-
-                    if($block->getTypeId() === $baseBlock->getTypeId()) {
-                        $above = $pos->getSide(1);
-                        if($above->getY() < World::Y_MAX && $world->getBlock($above)->getTypeId() === VanillaBlocks::AIR()->getTypeId()) {
-                            $blocks[] = $above;
-                        }
-                    }
-                }
+        $radius = (int) $this->plugin->getConfig()->get("generation_radius", 25);
+        
+        for ($x = -$radius; $x <= $radius; $x++) {
+            for ($z = -$radius; $z <= $radius; $z++) {
+                $pos = $player->getPosition()->add($x, 0, $z);
+                $this->tryGenerateAt($pos->getFloorX(), $pos->getFloorY(), $pos->getFloorZ(), $world);
             }
         }
+    }
 
-        return $blocks;
+    private function tryGenerateAt(int $x, int $y, int $z, World $world): void {
+        $baseBlockPos = new Position($x, $y, $z, $world);
+        $baseBlock = $world->getBlock($baseBlockPos);
+        
+        if ($baseBlock->getTypeId() !== VanillaBlocks::BARRIER()->getTypeId()) return;
+        
+        $abovePos = $baseBlockPos->getSide(1);
+        if ($abovePos->getY() >= World::Y_MAX) return;
+        
+        $key = $this->positionToKey($abovePos);
+        if (!isset($this->processedBlocks[$key])) {
+            $this->generateBlock($abovePos);
+            $this->processedBlocks[$key] = time();
+        }
     }
 
     private function generateBlock(Position $pos): void {
@@ -84,57 +63,24 @@ class BlockGenerator {
         $world->setBlock($pos, $block);
     }
 
-    private function countNearbyPlayers(Position $pos, World $world): int {
-        $radius = 5; // Radio para considerar "cercano"
-        $count = 0;
-        
-        foreach($world->getPlayers() as $player) {
-            if($player->getPosition()->distance($pos) <= $radius) {
-                $count++;
-                if($count >= 3) break; // No necesitamos contar más
-            }
-        }
-        
-        return $count;
-    }
-
-    private function getBaseBlock(): Block {
-        $blockName = strtolower($this->plugin->getConfig()->get("base_block", "barrier"));
-        return VanillaBlocks::{$blockName}() ?? VanillaBlocks::BARRIER();
-    }
-
     private function getRandomBlock(): Block {
-        $blocks = $this->plugin->getConfig()->get("generated_blocks", []);
-        $validBlocks = [];
-        
-        foreach($blocks as $blockName) {
-            try {
-                $validBlocks[] = VanillaBlocks::{$blockName}();
-            } catch (\Error $e) {
-                continue;
-            }
-        }
-        
-        if(empty($validBlocks)) {
-            $validBlocks = [
-                VanillaBlocks::IRON_ORE(),
-                VanillaBlocks::DIAMOND_ORE(),
-                VanillaBlocks::COAL_ORE(),
-                VanillaBlocks::EMERALD_ORE()
-            ];
-        }
-        
-        return $validBlocks[array_rand($validBlocks)];
+        $blocks = [
+            VanillaBlocks::IRON_ORE(),
+            VanillaBlocks::DIAMOND_ORE(),
+            VanillaBlocks::COAL_ORE(),
+            VanillaBlocks::EMERALD_ORE()
+        ];
+        return $blocks[array_rand($blocks)];
     }
 
     private function positionToKey(Position $pos): string {
-        return $pos->getFloorX() . ":" . $pos->getFloorY() . ":" . $pos->getFloorZ() . ":" . $pos->getWorld()->getId();
+        return "{$pos->getX()}:{$pos->getY()}:{$pos->getZ()}:{$pos->getWorld()->getId()}";
     }
 
-    private function cleanOldCooldowns(array $activeBlocks): void {
+    private function cleanOldCooldowns(): void {
         $currentTime = time();
-        foreach($this->processedBlocks as $key => $time) {
-            if(!isset($activeBlocks[$key]) && ($currentTime - $time) > $this->cooldown) {
+        foreach ($this->processedBlocks as $key => $time) {
+            if ($currentTime - $time > $this->cooldown) {
                 unset($this->processedBlocks[$key]);
             }
         }
